@@ -1,68 +1,28 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
+// Authentication utility functions
 
-// Hash password
+// Function to hash a password
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 const hashPassword = async (password) => {
-  const salt = await bcrypt.genSalt(10);
-  return await bcrypt.hash(password, salt);
+    const salt = await bcrypt.genSalt(saltRounds);
+    return bcrypt.hash(password, salt);
 };
 
-// Compare password
-const comparePassword = async (password, hashedPassword) => {
-  return await bcrypt.compare(password, hashedPassword);
-};
-
-// Generate JWT token
+// Function to generate a token
+const jwt = require('jsonwebtoken');
 const generateToken = (user) => {
-  return jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      username: user.username
-    },
-    process.env.JWT_SECRET || 'default-secret-key',
-    { expiresIn: '7d' }
-  );
+    return jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
 };
 
-// Verify JWT token
+// Function to verify a token
 const verifyToken = (token) => {
-  try {
-    return jwt.verify(token, process.env.JWT_SECRET || 'default-secret-key');
-  } catch (error) {
-    return null;
-  }
+    return jwt.verify(token, 'your_jwt_secret');
 };
 
-// Generate verification code
+// Function to generate a verification code
 const generateVerificationCode = () => {
-  return crypto.randomInt(100000, 999999).toString();
+    return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
 };
 
-// Validate email format
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-// Validate password strength
-const isStrongPassword = (password) => {
-  return password.length >= 8;
-};
-
-// Validate username
-const isValidUsername = (username) => {
-  return username.length >= 3 && /^[a-zA-Z0-9_-]+$/.test(username);
-};
-
-module.exports = {
-  hashPassword,
-  comparePassword,
-  generateToken,
-  verifyToken,
-  generateVerificationCode,
-  isValidEmail,
-  isStrongPassword,
-  isValidUsername
-};
+module.exports = { hashPassword, generateToken, verifyToken, generateVerificationCode };
